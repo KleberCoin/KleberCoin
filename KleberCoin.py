@@ -28,7 +28,8 @@ class Blockchain:
         self.chain = [first_block]
 
     def add_block(self, block):
-        if (block.hash == sha256(str(self.index) +
-                            str(self.timestamp) +
-                            str(self.data) +
-                            str(self.previous_hash))
+        if block.hash == sha256(str(block.index) +
+                            str(block.timestamp) +
+                            str(block.data) +
+                            str(self.chain[-1].hash)):
+            self.chain.append()
