@@ -2,7 +2,6 @@ import hashlib
 
 import datetime as date
 
-def sha256(string_to_hash):
 
 class Block:
     def __init__(self, timestamp, data, previous_block):
@@ -13,11 +12,23 @@ class Block:
         self.hash = self.hash_block()
 
     def hash_block(self):
-        string_to_hash(str(self.index) +
+        sha256 = hashlib.sha256()
+        sha256.update(str(self.index) +
                         str(self.timestamp) +
                         str(self.data) +
                         str(self.previous_hash))
-        return sha256(string_to_hash)
+        return sha256.hexdigest()
 
 def creation_premier_bloc():
     return Block(0,datetime.datetime.now(),"Premier bloc","0")
+
+
+class Blockchain:
+    def __init__(self, first_block):
+        self.chain = [first_block]
+
+    def add_block(self, block):
+        if (block.hash == sha256(str(self.index) +
+                            str(self.timestamp) +
+                            str(self.data) +
+                            str(self.previous_hash))
