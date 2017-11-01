@@ -68,7 +68,7 @@ class Blockchain:
             #print(str(i) + " : " + str(block.index))
             if not self.check_block_validity(block):
                 #print("Block {} not true".format(block.index))
-                marker.append(block.index)
+                marker.append(i)
         if len(marker) != 0:
             print("Blockchain integrity compromised\nBlock {} invalid".format(marker))
         return marker
