@@ -15,10 +15,10 @@ class Block:
 
     def hash_block(self):
         sha256 = hashlib.sha256()
-        sha256.update(bytes(str(self.index)"utf-8") +
-                        bytes(str(self.timestamp)"utf-8") +
-                        bytes(str(self.data)"utf-8") +
-                        bytes(str(self.previous_hash)"utf-8"))
+        sha256.update(bytes(str(self.index),"utf-8") +
+                        bytes(str(self.timestamp),"utf-8") +
+                        bytes(str(self.data),"utf-8") +
+                        bytes(str(self.previous_hash),"utf-8"))
         return sha256.hexdigest()
 
 def creation_premier_bloc():

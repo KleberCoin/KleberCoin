@@ -64,10 +64,10 @@ class Blockchain:
     def check_chain_integrity(self):
         marker = []
         for i in range(0,len(self.chain)):
-            block = blockchain.chain[i]
-            print(block.index)
+            block = self.chain[i]
+            #print(str(i) + " : " + str(block.index))
             if not self.check_block_validity(block):
-                print("Block {} not true".format(block.index))
+                #print("Block {} not true".format(block.index))
                 marker.append(block.index)
         if len(marker) != 0:
             print("Blockchain integrity compromised\nBlock {} invalid".format(marker))
@@ -76,8 +76,7 @@ class Blockchain:
 def create_new_blockchain(first_block):
     return Blockchain(first_block)
 
-
-if __name__ == '__main__':
+def main():
     #On crée le premier bloc
     firstBlock = create_first_block("Une nouvelle aventure!")
     #On crée notre blockchain
@@ -89,3 +88,6 @@ if __name__ == '__main__':
     blockchain.chain[2] = Block(0,datetime.datetime.now(),"Bloc modifié","0")
     #On vérifie l'intégrité de la chaîne
     invalidBlockList = blockchain.check_chain_integrity()
+
+if __name__ == '__main__':
+    main()
