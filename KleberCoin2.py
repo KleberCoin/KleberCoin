@@ -2,8 +2,9 @@
 #Python 2.7
 
 import hashlib
-import datetime
 
+#Pour plus de simplicité, on crée une fonction qui appelle la fonction sha256
+#de la librairie 'hashlib'
 def sha256(string):
     sha256 = hashlib.sha256()
     sha256.update(string)
@@ -41,38 +42,61 @@ def create_first_block(data):
 def create_next_block(data, blockchain):
     return Block(len(blockchain.chain), datetime.datetime.now(), data, blockchain.chain[-1].hash)
 
+#On crée une classe d'objet pour notre blockchain
 class Blockchain:
     def __init__(self, first_block):
+        #La classe Blockchain possède pour attribut une liste contenant les blocs
         self.chain = [first_block]
 
-    def check_block_validity(self, block):
+    #Méthode permettant de vérifier la validité d'un bloc
+    def check_block_validity(self, block, block_number):
+        #On test si le hash du bloc correspond à celui de la chaîne de caractère
+        # contenant son contenu et le hash du bloc précédent de la chaîne.
         if (block.hash == sha256(str(block.index) +
                             str(block.timestamp) +
                             str(block.data) +
-                            str(self.chain[block.index - 1].hash))) and (block.index == self.chain[block.index - 1].index + 1):
+                            str(self.chain[block_number - 1].hash))) and (block.index == self.chain[block_number - 1].index + 1):
             #print("Block is valid.")
+            #Si l'égalité se vérifie, le bloc est valide
             return True
         else:
             #print("Block is invalid.")
+            #Si l'agalité ne se vérifie pas, le bloc est non valide
             return False
 
+    #Méthode permettant l'ajout d'un bloc à la chaîne
     def add_block(self, block):
-        if self.check_block_validity(block):
+        #On ne permet l'ajout d'un bloc que si sa validité est affirmée par la
+        # methode check_block_validity
+        if self.check_block_validity(block, len(self.chain)):
+            print("Block #{} added.".format(len(self.chain)))
             self.chain.append(block)
-            print("Block #{} added.".format(block.index))
 
+    #Méthode permettant de vérifier l'intégrité de la blockchain; si tous les
+    #blocs sont valides
     def check_chain_integrity(self):
+        #On crée une variable pour contenir la position dans la chaîne des blocs
+        # non valides
         marker = []
-        for i in range(0,len(self.chain)):
+        #On vérifie tous les blocs sauf le premier de la liste, le bloc 0 car ce
+        # dernier est toujours valide
+        #(aucun bloc ne le précède donc il ne dépend d'aucune information
+        #provenant d'un autre bloc)
+        marker = []
+        #On vérifie tous les blocs sauf le premier de la liste, le bloc 0 car ce
+        # dernier est toujours valide
+        #(aucun bloc ne le précède donc il ne dépend d'aucune information
+        #provenant d'un autre bloc)
+        for i in range(1,len(self.chain)):
             block = self.chain[i]
-            #print(str(i) + " : " + str(block.index))
-            if not self.check_block_validity(block):
-                #print("Block {} not true".format(block.index))
+            if not self.check_block_validity(block, i):
                 marker.append(i)
         if len(marker) != 0:
-            print("Blockchain integrity compromised\nBlock {} invalid".format(marker))
+            print("Blockchain integrity compromised" + "\n" +
+                "Block {} invalid".format(marker))
         return marker
 
+#Fonction permettant de créer une nouvelle blockchain à partir d'un bloc
 def create_new_blockchain(first_block):
     return Blockchain(first_block)
 
