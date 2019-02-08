@@ -1,4 +1,9 @@
-# -*- coding: utf-8 -*-#
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Feb  8 10:31:07 2019
+
+@author: mansire
+"""
 
 import hashlib
 
@@ -30,12 +35,20 @@ class Chaine_de_Blocs:
         self.chain = [premier_bloc]
         
     def verification_de_chaine(): 
+        return None
+
+    # Traitement d'un nouveau bloc
+    def vérification_de_bloc(self, bloc):
+        if bloc.marquage_précédent == self.chaine[-1].marquage:
+            return True
         
-    def verification_de_bloc():
-    
+    def vérification_transactions(self, bloc):
+        return True
         
     
-    def ajout_de_block():
+    def ajout_de_block(self, bloc):
+        if vérification_de_bloc(bloc) and vérification_transactions(bloc):
+            self.chain.append(bloc)
 
 
 class Transaction:
