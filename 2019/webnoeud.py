@@ -50,12 +50,18 @@ transaction_noeud = []
 # Savoir si le noeud est up
 @noeud.route("/statut", methods=["GET"])
 def statut():
+    if(verbose):
+           # On print ce qu'on a fait
+           print("envoi statut OK à %s" % request.remote_addr)
     return jsonify({"statut": "OK"}), 200
 
 # Donner la liste des pairs connus sur demande
 @noeud.route("/pairs", methods=["GET"])
 def donner_les_pairs():
     pairs_a_envoyer = liste_des_pairs + [ip_du_noeud]
+    if(verbose):
+           # On print ce qu'on a fait
+           print("Envoi de la liste des pairs à %s" % request.remote_addr)
     return jsonify({"adresses": pairs_a_envoyer}), 200
 
 # Ajout du pair nous envoyant une demande : test de son statut d'abord
@@ -65,6 +71,9 @@ def ajout_pair():
     statut_pair = statut_pair.json()
     if(statut_pair["statut"] == "OK"):
         liste_des_pairs.append(request.remote_addr)
+        if(verbose):
+               # On print ce qu'on a fait
+               print("Ajout du pair %s" % request.remote_addr)
         return jsonify({"statut": "Fait"}), 200
     else:
         return jsonify({"statut": "Erreur"}), 400
@@ -73,6 +82,9 @@ def ajout_pair():
 @noeud.route("/chaine", methods=["GET"])
 def donner_la_chaine():
     # TODO: return la chaine de bloc
+    if(verbose):
+           # On print ce qu'on a fait
+           print("Don de la chaine de bloc à %s" % request.remote_addr)
     return jsonify(chaine_de_bloc)
 
 # Ecoute serveur web pour utilisateur veut faire une transaction
