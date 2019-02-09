@@ -37,11 +37,11 @@ class Chaine_de_Blocs:
         return None
 
     # Traitement d'un nouveau bloc
-    def vérification_de_bloc(self, bloc):
+    def verification_de_bloc(self, bloc):
         if bloc.marquage_précédent == self.chaine[-1].marquage:
             return True
         
-    def vérification_transactions(self, bloc):
+    def verification_transactions(self, bloc):
         return True
         
     
