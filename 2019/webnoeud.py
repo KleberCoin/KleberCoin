@@ -14,18 +14,18 @@ from flask import request
 } "chiffrement privé transaction" = ""
 */
 
-
+verbose = True
 
 # Init. Flask
 noeud = Flask(__name__)
 
-# Stockage des transactions du noeud dans une liste 
+# Stockage des transactions du noeud dans une liste avant de l'ajouter dans un bloc
 transaction_noeud = []
 
 # Ecoute serveur web pour utilisateur veut faire une transaction
 @noeud.route('/transaction', methods=['POST'])
 def transaction():
-  if request.method == 'POST':
+  if(request.method == 'POST'):
   
     # Pour chaque requete on extrait les donnees de transaction
     nouv_transaction = request.get_json()
@@ -35,11 +35,12 @@ def transaction():
     
         # On ajoute cette transaction à la liste
         transaction_noeud.append(nouv_transaction)
-    	  # On print que on a recu la transaction
-        print("nouv transaction")
-        print("DE: {}".format(nouv_transaction["de"]))
-        print("VERS: {}".format(nouv_transaction["vers"]))
-        print("MONTANT: {}\n".format(nouv_transaction["montant"]))
+    	  if(verbose):
+          # On print que on a recu la transaction
+          print("Nouvelle transaction")
+          print("DE: {}".format(nouv_transaction["de"]))
+          print("VERS: {}".format(nouv_transaction["vers"]))
+          print("MONTANT: {}\n".format(nouv_transaction["montant"]))
         # On repond ok
         return "Transaction soumise avec succès"
     else:
