@@ -23,7 +23,7 @@ ip_du_noeud = "192.168.0.1"
 # Ce noeud est il le premier du réseau ?
 premier_noeud = True
 # Stockage des noeuds pair. Si pas premier_noeud
-liste_des_pairs = ["192.168.0.1"]
+liste_des_pairs = ["192.168.0.2"]
 
 
 
