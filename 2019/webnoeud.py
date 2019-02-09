@@ -16,7 +16,7 @@ import json
 #  "chiffrement_prive_transaction": "ihgohighsghgomihirmgiqùeoieùoijgermoihergoiergjhoefiqqhsfklghermsklghqlmekrgnelkghnrgklhn" --> Si il est déchiffré par la clé publique et correspond : c'st bon
 #} "chiffrement privé transaction" = ""
 #
-
+port = 13333
 verbose = True
 ip_du_noeud = "192.168.0.1"
 
@@ -35,7 +35,7 @@ noeud = Flask(__name__)
 # Init. Pair de la Blockchain
 if not premier_noeud and liste_des_pairs:
     # Récupération de la liste des autres pairs
-    req = requests.get('http://%s/pairs' % liste_des_pairs[0]) # JSON {"adresses": ["192.168.0.1", "192.168.0.3"]} avec l'adresse du premier pair dedans
+    req = requests.get('http://{}/pairs:13333'.format(liste_des_pairs[0])) # JSON {"adresses": ["192.168.0.1", "192.168.0.3"]} avec l'adresse du premier pair dedans
     donnees = req.json() #json.loads(req) # donnees > dictionnaire
     liste_des_pairs = donnees["adresses"] # donnes["adresses"] > liste
 # A test
@@ -52,7 +52,7 @@ transaction_noeud = []
 def statut():
     if(verbose):
            # On print ce qu'on a fait
-           print("envoi statut OK à %s" % request.remote_addr)
+           print("envoi statut OK à {}".format(request.remote_addr))
     return jsonify({"statut": "OK"}), 200
 
 # Donner la liste des pairs connus sur demande
@@ -61,19 +61,19 @@ def donner_les_pairs():
     pairs_a_envoyer = liste_des_pairs + [ip_du_noeud]
     if(verbose):
            # On print ce qu'on a fait
-           print("Envoi de la liste des pairs à %s" % request.remote_addr)
+           print("Envoi de la liste des pairs à {}".format(request.remote_addr))
     return jsonify({"adresses": pairs_a_envoyer}), 200
 
 # Ajout du pair nous envoyant une demande : test de son statut d'abord
 @noeud.route("/ajout_pair", methods=["POST"])
 def ajout_pair():
-    statut_pair = requests.get('http://%s/statut' % request.remote_addr)
+    statut_pair = requests.get('http://{}/statut'.format(request.remote_addr))
     statut_pair = statut_pair.json()
     if(statut_pair["statut"] == "OK"):
         liste_des_pairs.append(request.remote_addr)
         if(verbose):
                # On print ce qu'on a fait
-               print("Ajout du pair %s" % request.remote_addr)
+               print("Ajout du pair {}".format(request.remote_addr))
         return jsonify({"statut": "Fait"}), 200
     else:
         return jsonify({"statut": "Erreur"}), 400
@@ -84,7 +84,7 @@ def donner_la_chaine():
     # TODO: return la chaine de bloc
     if(verbose):
            # On print ce qu'on a fait
-           print("Don de la chaine de bloc à %s" % request.remote_addr)
+           print("Don de la chaine de bloc à {}".format(request.remote_addr))
     return jsonify(chaine_de_bloc)
 
 # Ecoute serveur web pour utilisateur veut faire une transaction
@@ -111,9 +111,6 @@ def transaction():
         return 400
 
 def main():
-    port = 13333
-    if len(sys.argv) > 1:
-        port = sys.argv[1]
     chaine_de_bloc.append(premier_bloc)
     node.run(port=port)
 
