@@ -27,17 +27,11 @@ liste_des_pairs = ["192.168.0.2"]
 
 
 
-
 # Init. Flask
 noeud = Flask(__name__)
 
 
-# Init. Pair de la Blockchain
-if not premier_noeud and liste_des_pairs:
-    # Récupération de la liste des autres pairs
-    req = requests.get('http://{}/pairs:13333'.format(liste_des_pairs[0])) # JSON {"adresses": ["192.168.0.1", "192.168.0.3"]} avec l'adresse du premier pair dedans
-    donnees = req.json() #json.loads(req) # donnees > dictionnaire
-    liste_des_pairs = donnees["adresses"] # donnes["adresses"] > liste
+
 # A test
 
 
@@ -67,7 +61,8 @@ def donner_les_pairs():
 # Ajout du pair nous envoyant une demande : test de son statut d'abord
 @noeud.route("/ajout_pair", methods=["POST"])
 def ajout_pair():
-    statut_pair = requests.get('http://{}/statut'.format(request.remote_addr))
+    # Test si le pair est réellement un pair
+    statut_pair = requests.get('http://{}/statut:13333'.format(request.remote_addr))
     statut_pair = statut_pair.json()
     if(statut_pair["statut"] == "OK"):
         liste_des_pairs.append(request.remote_addr)
@@ -111,8 +106,32 @@ def transaction():
         return 400
 
 def main():
-    chaine_de_bloc.append(premier_bloc)
+    if(premier_noeud):
+        chaine_de_bloc.append(premier_bloc)
     node.run(port=port)
+
+
+    # On assume qu'un nouveau pair qui n'est pas le premier va aller
+    # se présenter chez tous les pairs de la chaine de block, puis va
+    # télécharger la plus longue chaine_de_bloc
+
+    # Init. Pair de la Blockchain
+    if not premier_noeud and liste_des_pairs:
+        # Récupération de la liste des autres pairs
+        req = requests.get('http://{}/pairs:13333'.format(liste_des_pairs[0])) # JSON {"adresses": ["192.168.0.1", "192.168.0.3"]} avec l'adresse du premier pair dedans
+        donnees = req.json() #json.loads(req) # donnees > dictionnaire
+        liste_des_pairs = donnees["adresses"] # donnes["adresses"] > liste
+
+        # Présentation chez les autres pairs
+        for pair in liste_des_pairs:
+            req = requests.get('http://{}/ajout_pair:13333'.format(liste_des_pairs[pair]))
+            if(req.status_code == 200):
+                if(verbose):
+                    print("Accepté comme pair chez {}".format(liste_des_pairs[pair]))
+            else:
+                if(verbose):
+                    print("Pas Accepté comme pair chez {}  :(".format(liste_des_pairs[pair]))
+
 
 if __name__ == '__main__':
     main()
