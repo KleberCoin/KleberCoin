@@ -58,7 +58,7 @@ transaction_noeud = []
 
 def prendre_statut(ip_pair):
     """ Prendre le statut d'un pair, savoir s'il est actif """
-    statut_pair = requests.get('http://{}/statut:13333'.format(ip_pair)).content
+    statut_pair = requests.get('http://{}:13333/statut'.format(ip_pair)).content
     #statut_pair = statut_pair.json()
     statut_pair = json.loads(statut_pair)
     if(statut_pair["statut"] == "OK"):
@@ -68,7 +68,7 @@ def prendre_statut(ip_pair):
 def prendre_pairs_connus(ip_pair):
     """ Prendre la liste des pairs d'un pair """
     # Récupération de la liste des autres pairs
-    req = requests.get('http://{}/pairs:13333'.format(ip_pair)).content
+    req = requests.get('http://{}:13333/pairs'.format(ip_pair)).content
     # JSON {"adresses": ["192.168.0.1", "192.168.0.3"]} avec
     # l'adresse du premier pair dedans
     donnees = json.loads(req) # donnees > dictionnaire
@@ -81,7 +81,7 @@ def prendre_chaine(ip_pair):
 
 def se_montrer_pair(ip_pair):
     """ Montrer qu'on est un pair à un pair """
-    req = requests.get('http://{}/ajout_pair:13333'.format(ip_pair))
+    req = requests.get('http://{}:13333/ajout_pair'.format(ip_pair))
     if(req.status_code == 200):
         if(VERBOSE):
             print("Accepté comme pair chez {}".format(ip_pair))
@@ -133,6 +133,7 @@ def ajout_pair():
 def donner_la_chaine():
     """ Envoie la version du noeud de la chaine """
     # TODO: return la chaine de bloc
+    chaine_de_bloc = "oui"
     if(VERBOSE):
         print("Don de la chaine de bloc à {}".format(request.remote_addr))
     return jsonify(chaine_de_bloc)
@@ -169,8 +170,8 @@ def transaction():
 ################################################################################
 
 def main():
-    if(PREMIER_NOEUD):
-        chaine_de_bloc.append(premier_bloc)
+    #if(PREMIER_NOEUD):
+    #    chaine_de_bloc.append(premier_bloc)
     noeud.run(port=13333)
 
 
@@ -188,9 +189,10 @@ def main():
         # Présentation chez les autres pairs
         for pair in liste_des_pairs:
             se_montrer_pair(pair)
-    else:
+    elif not PREMIER_NOEUD and not liste_des_pairs:
         print("Erreur: Noeud pas le premier mais liste des pairs vide")
 
+    print("noeud en ligne")
 
 if __name__ == '__main__':
     main()
