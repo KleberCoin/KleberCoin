@@ -1,11 +1,17 @@
+"""
+Serveur web d'un noeud de la chaine de bloc KleberCoin
+"""
+
+import json
+import requests
+
 from flask import Flask
 from flask import request
 from flask import jsonify
 
-import requests
-import json
 
-# Rappel : fonctionne avec chiffrement asymétrique: clé publique/clé privée. Seul l'auteur peut chiffrer ce qui va être déchiffrer par la clé publique
+# Rappel : fonctionne avec chiffrement asymétrique: clé publique/clé privée.
+#Seul l'auteur peut chiffrer ce qui va être déchiffrer par la clé publique
 
 # POUR FAIRE UNE TRANSACTION : POST /transaction data:
 #
@@ -13,16 +19,21 @@ import json
 #  "de": "71238uqirbfh894-random-public-key-a-alkjdflakjfewn204ij",
 #  "vers": "93j4ivnqiopvh43-random-public-key-b-qjrgvnoeirbnferinfo",
 #  "montant": 3,
-#  "chiffrement_prive_transaction": "ihgohighsghgomihirmgiqùeoieùoijgermoihergoiergjhoefiqqhsfklghermsklghqlmekrgnelkghnrgklhn" --> Si il est déchiffré par la clé publique et correspond : c'st bon
+#  "chiffrement_prive_transaction": "ihgohighsghgomihirmgiqùeoieùoijgermoihergo
+#iergjhoefiqqhsfklghermsklghqlmekrgnelkghnrgklhn" --> Si il est déchiffré par
+#la clé publique et correspond : c'est bon
 #} "chiffrement privé transaction" = ""
 #
-port = 13333
-verbose = True
-ip_du_noeud = "192.168.0.1"
+# PORT DES NOEUDS : 13333
+VERBOSE = True
+IP_NOEUD = "192.168.0.1"
 
 # Ce noeud est il le premier du réseau ?
-premier_noeud = True
-# Stockage des noeuds pair. Si pas premier_noeud
+PREMIER_NOEUD = True
+
+
+global liste_des_pairs
+# Stockage des noeuds pair. Si pas PREMIER_NOEUD
 liste_des_pairs = ["192.168.0.2"]
 
 
@@ -35,56 +46,58 @@ noeud = Flask(__name__)
 # A test
 
 
-# Stockage des transactions du noeud dans une liste avant de l'ajouter dans un bloc
+# Stockage des transactions du noeud dans une liste avant de l'ajouter dans un
+# bloc
 transaction_noeud = []
 
 
 
 
-# Savoir si le noeud est up
+
 @noeud.route("/statut", methods=["GET"])
 def statut():
-    if(verbose):
-           # On print ce qu'on a fait
-           print("envoi statut OK à {}".format(request.remote_addr))
+    """ Retourne si le noeud est bien un noeud actif """
+    if(VERBOSE):
+        print("envoi statut OK à {}".format(request.remote_addr))
     return jsonify({"statut": "OK"}), 200
 
-# Donner la liste des pairs connus sur demande
+
+
 @noeud.route("/pairs", methods=["GET"])
 def donner_les_pairs():
-    pairs_a_envoyer = liste_des_pairs + [ip_du_noeud]
-    if(verbose):
-           # On print ce qu'on a fait
-           print("Envoi de la liste des pairs à {}".format(request.remote_addr))
+    """ Donner la liste des pairs connus sur demande """
+    pairs_a_envoyer = liste_des_pairs + [IP_NOEUD]
+    if(VERBOSE):
+        print("Envoi de la liste des pairs à {}".format(request.remote_addr))
     return jsonify({"adresses": pairs_a_envoyer}), 200
 
-# Ajout du pair nous envoyant une demande : test de son statut d'abord
+
 @noeud.route("/ajout_pair", methods=["POST"])
 def ajout_pair():
+    """ Ajout du pair nous envoyant une demande : test de son statut d'abord """
     # Test si le pair est réellement un pair
     statut_pair = requests.get('http://{}/statut:13333'.format(request.remote_addr))
     statut_pair = statut_pair.json()
     if(statut_pair["statut"] == "OK"):
         liste_des_pairs.append(request.remote_addr)
-        if(verbose):
-               # On print ce qu'on a fait
-               print("Ajout du pair {}".format(request.remote_addr))
+        if(VERBOSE):
+            print("Ajout du pair {}".format(request.remote_addr))
         return jsonify({"statut": "Fait"}), 200
-    else:
-        return jsonify({"statut": "Erreur"}), 400
+    return jsonify({"statut": "Erreur"}), 400
 
-# Envoie la version du noeud de la chaine
+
 @noeud.route("/chaine", methods=["GET"])
 def donner_la_chaine():
+    """ Envoie la version du noeud de la chaine """
     # TODO: return la chaine de bloc
-    if(verbose):
-           # On print ce qu'on a fait
-           print("Don de la chaine de bloc à {}".format(request.remote_addr))
+    if(VERBOSE):
+        print("Don de la chaine de bloc à {}".format(request.remote_addr))
     return jsonify(chaine_de_bloc)
 
-# Ecoute serveur web pour utilisateur veut faire une transaction
+
 @noeud.route("/transaction", methods=["POST"])
 def transaction():
+    """ Ecoute serveur web pour utilisateur qui veut faire une transaction """
     # Pour chaque requete on extrait les donnees de transaction
     nouv_transaction = request.get_json()
 
@@ -94,43 +107,44 @@ def transaction():
 
         # On ajoute cette transaction à la liste
         transaction_noeud.append(nouv_transaction)
-    	if(verbose):
-               # On print que on a recu la transaction
-               print("Nouvelle transaction")
-               print("DE: {}".format(nouv_transaction["de"]))
-               print("VERS: {}".format(nouv_transaction["vers"]))
-               print("MONTANT: {}\n".format(nouv_transaction["montant"]))
+        if(VERBOSE):
+            print("Nouvelle transaction")
+            print("DE: {}".format(nouv_transaction["de"]))
+            print("VERS: {}".format(nouv_transaction["vers"]))
+            print("MONTANT: {}\n".format(nouv_transaction["montant"]))
         # On repond ok
         return 200
-      else:
-        return 400
+    return 400
 
 def main():
-    if(premier_noeud):
+    if(PREMIER_NOEUD):
         chaine_de_bloc.append(premier_bloc)
-    node.run(port=port)
+    noeud.run(port=13333)
 
 
     # On assume qu'un nouveau pair qui n'est pas le premier va aller
     # se présenter chez tous les pairs de la chaine de block, puis va
     # télécharger la plus longue chaine_de_bloc
 
+
     # Init. Pair de la Blockchain
-    if not premier_noeud and liste_des_pairs:
+    if not PREMIER_NOEUD and liste_des_pairs:
         # Récupération de la liste des autres pairs
-        req = requests.get('http://{}/pairs:13333'.format(liste_des_pairs[0])) # JSON {"adresses": ["192.168.0.1", "192.168.0.3"]} avec l'adresse du premier pair dedans
+        req = requests.get('http://{}/pairs:13333'.format(liste_des_pairs[0]))
+        # JSON {"adresses": ["192.168.0.1", "192.168.0.3"]} avec
+        # l'adresse du premier pair dedans
         donnees = req.json() #json.loads(req) # donnees > dictionnaire
         liste_des_pairs = donnees["adresses"] # donnes["adresses"] > liste
 
         # Présentation chez les autres pairs
         for pair in liste_des_pairs:
-            req = requests.get('http://{}/ajout_pair:13333'.format(liste_des_pairs[pair]))
+            req = requests.get('http://{}/ajout_pair:13333'.format(pair))
             if(req.status_code == 200):
-                if(verbose):
-                    print("Accepté comme pair chez {}".format(liste_des_pairs[pair]))
+                if(VERBOSE):
+                    print("Accepté comme pair chez {}".format(pair))
             else:
-                if(verbose):
-                    print("Pas Accepté comme pair chez {}  :(".format(liste_des_pairs[pair]))
+                if(VERBOSE):
+                    print("Pas Accepté comme pair chez {}  :(".format(pair))
 
 
 if __name__ == '__main__':
