@@ -58,8 +58,9 @@ transaction_noeud = []
 
 def prendre_statut(ip_pair):
     """ Prendre le statut d'un pair, savoir s'il est actif """
-    statut_pair = requests.get('http://{}/statut:13333'.format(ip_pair))
-    statut_pair = statut_pair.json()
+    statut_pair = requests.get('http://{}/statut:13333'.format(ip_pair)).content
+    #statut_pair = statut_pair.json()
+    statut_pair = json.loads(statut_pair)
     if(statut_pair["statut"] == "OK"):
         return True
     return False
@@ -67,10 +68,10 @@ def prendre_statut(ip_pair):
 def prendre_pairs_connus(ip_pair):
     """ Prendre la liste des pairs d'un pair """
     # Récupération de la liste des autres pairs
-    req = requests.get('http://{}/pairs:13333'.format(liste_des_pairs[0]))
+    req = requests.get('http://{}/pairs:13333'.format(ip_pair)).content
     # JSON {"adresses": ["192.168.0.1", "192.168.0.3"]} avec
     # l'adresse du premier pair dedans
-    donnees = req.json() #json.loads(req) # donnees > dictionnaire
+    donnees = json.loads(req) # donnees > dictionnaire
     # donnes["adresses"] > liste
     return donnees["adresses"]
 
@@ -89,7 +90,7 @@ def se_montrer_pair(ip_pair):
         print("Pas Accepté comme pair chez {}  :(".format(ip_pair))
     return False
 
-#
+
 
 ################################################################################
 ################################ SERVEUR WEB ###################################
