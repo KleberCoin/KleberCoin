@@ -66,7 +66,13 @@ def prendre_statut(ip_pair):
 
 def prendre_pairs_connus(ip_pair):
     """ Prendre la liste des pairs d'un pair """
-    return True
+    # Récupération de la liste des autres pairs
+    req = requests.get('http://{}/pairs:13333'.format(liste_des_pairs[0]))
+    # JSON {"adresses": ["192.168.0.1", "192.168.0.3"]} avec
+    # l'adresse du premier pair dedans
+    donnees = req.json() #json.loads(req) # donnees > dictionnaire
+    # donnes["adresses"] > liste
+    return donnees["adresses"]
 
 def prendre_chaine(ip_pair):
     """ Prendre la chaine d'un pair """
@@ -83,7 +89,7 @@ def se_montrer_pair(ip_pair):
         print("Pas Accepté comme pair chez {}  :(".format(ip_pair))
     return False
 
-
+#
 
 ################################################################################
 ################################ SERVEUR WEB ###################################
@@ -175,15 +181,14 @@ def main():
     # Init. Pair de la Blockchain
     if not PREMIER_NOEUD and liste_des_pairs:
         # Récupération de la liste des autres pairs
-        req = requests.get('http://{}/pairs:13333'.format(liste_des_pairs[0]))
-        # JSON {"adresses": ["192.168.0.1", "192.168.0.3"]} avec
-        # l'adresse du premier pair dedans
-        donnees = req.json() #json.loads(req) # donnees > dictionnaire
-        liste_des_pairs = donnees["adresses"] # donnes["adresses"] > liste
+
+        liste_des_pairs = prendre_pairs_connus(liste_des_pairs[0])
 
         # Présentation chez les autres pairs
         for pair in liste_des_pairs:
             se_montrer_pair(pair)
+    else:
+        print("Erreur: Noeud pas le premier mais liste des pairs vide")
 
 
 if __name__ == '__main__':
