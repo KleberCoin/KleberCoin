@@ -25,10 +25,13 @@ from flask import jsonify
 #} "chiffrement privé transaction" = ""
 #
 # PORT DES NOEUDS : 13333
+global VERBOSE
 VERBOSE = True
+global IP_NOEUD
 IP_NOEUD = "192.168.0.1"
 
 # Ce noeud est il le premier du réseau ?
+global PREMIER_NOEUD
 PREMIER_NOEUD = True
 
 
@@ -49,16 +52,47 @@ noeud = Flask(__name__)
 # Stockage des transactions du noeud dans une liste avant de l'ajouter dans un
 # bloc
 transaction_noeud = []
+################################################################################
+############################## FONCTIONS NOEUD #################################
+################################################################################
+
+def prendre_statut(ip_pair):
+    """ Prendre le statut d'un pair, savoir s'il est actif """
+    statut_pair = requests.get('http://{}/statut:13333'.format(ip_pair))
+    statut_pair = statut_pair.json()
+    if(statut_pair["statut"] == "OK"):
+        return True
+    return False
+
+def prendre_pairs_connus(ip_pair):
+    """ Prendre la liste des pairs d'un pair """
+    return True
+
+def prendre_chaine(ip_pair):
+    """ Prendre la chaine d'un pair """
+    return True
+
+def se_montrer_pair(ip_pair):
+    """ Montrer qu'on est un pair à un pair """
+    req = requests.get('http://{}/ajout_pair:13333'.format(ip_pair))
+    if(req.status_code == 200):
+        if(VERBOSE):
+            print("Accepté comme pair chez {}".format(ip_pair))
+        return True
+    if(VERBOSE):
+        print("Pas Accepté comme pair chez {}  :(".format(ip_pair))
+    return False
 
 
 
-
-
+################################################################################
+################################ SERVEUR WEB ###################################
+################################################################################
 @noeud.route("/statut", methods=["GET"])
-def statut():
+def donner_statut():
     """ Retourne si le noeud est bien un noeud actif """
     if(VERBOSE):
-        print("envoi statut OK à {}".format(request.remote_addr))
+        print("Envoi statut OK à {}".format(request.remote_addr))
     return jsonify({"statut": "OK"}), 200
 
 
@@ -75,14 +109,16 @@ def donner_les_pairs():
 @noeud.route("/ajout_pair", methods=["POST"])
 def ajout_pair():
     """ Ajout du pair nous envoyant une demande : test de son statut d'abord """
+
     # Test si le pair est réellement un pair
-    statut_pair = requests.get('http://{}/statut:13333'.format(request.remote_addr))
-    statut_pair = statut_pair.json()
-    if(statut_pair["statut"] == "OK"):
-        liste_des_pairs.append(request.remote_addr)
-        if(VERBOSE):
-            print("Ajout du pair {}".format(request.remote_addr))
-        return jsonify({"statut": "Fait"}), 200
+    if(prendre_statut(request.remote_addr)):
+        # On vérifie si il est pas déjà dans la liste
+        if(request.remote_addr not in liste_des_pairs):
+            liste_des_pairs.append(request.remote_addr)
+            if(VERBOSE):
+                print("Ajout du pair {}".format(request.remote_addr))
+            return jsonify({"statut": "Fait"}), 200
+        return jsonify({"statut": "Déjà fait"}), 200
     return jsonify({"statut": "Erreur"}), 400
 
 
@@ -138,13 +174,7 @@ def main():
 
         # Présentation chez les autres pairs
         for pair in liste_des_pairs:
-            req = requests.get('http://{}/ajout_pair:13333'.format(pair))
-            if(req.status_code == 200):
-                if(VERBOSE):
-                    print("Accepté comme pair chez {}".format(pair))
-            else:
-                if(VERBOSE):
-                    print("Pas Accepté comme pair chez {}  :(".format(pair))
+            se_montrer_pair(pair)
 
 
 if __name__ == '__main__':
