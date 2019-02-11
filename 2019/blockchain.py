@@ -35,8 +35,8 @@ def création_premier_bloc():
     return Bloc(datetime.datetime.now(), "Premier bloc", -1, "Premier bloc")
         
 class Chaine_de_Blocs:
-    def __init__(self, premier_bloc):
-        self.chaine = [premier_bloc]
+    def __init__(self, *premier_bloc):
+        self.chaine = [ *premier_bloc ]
         
     def vérification_de_chaine(): 
         return None
@@ -49,20 +49,23 @@ class Chaine_de_Blocs:
             return False
             
         à_vérifier = {}
-    
-        for transaction in bloc.données:
-            if transaction.émetteur in à_vérifier:
-                à_vérifier[transaction.émetteur] += - transaction.montant
-            else : à_vérifier[transaction.émetteur] = - transaction.montant
-        
         invalides = []
         valides = []
+    
+        for transaction in bloc.données:
+            if transaction.est_signée() and not transaction.émetteur in invalides:
+                if transaction.émetteur in à_vérifier:
+                    à_vérifier[transaction.émetteur] += - transaction.montant
+                else : à_vérifier[transaction.émetteur] = - transaction.montant
+            else :
+                invalides += [transaction.émetteur]
+        
         
         n = (bloc.index - 1)
         self.vérification_des_transactions(à_vérifier, valides, invalides, n )
         
-        print("Valides : ", valides)
-        print("Invalides : ", invalides )
+        #print("Valides : ", valides)
+        #print("Invalides : ", invalides )
         
         if len(invalides) == 0:
             return True
@@ -71,7 +74,7 @@ class Chaine_de_Blocs:
             
     # Fonction qui trie les demandes de transfert de fonds contenues dans le
     # dictionnaire
-    def vérification_des_transactions(self,à_vérifier, valides, invalides, n):
+    def vérification_des_transactions(self, à_vérifier, valides, invalides, n):
         """
             Fonction qui trie les demandes de transferts de fonds contenues 
             dans le dictionnaire "à_vérifié" en ne considérant la chaîne de
@@ -106,12 +109,20 @@ class Transaction:
         self.émetteur = émetteur
         self.destinataire = destinataire
         self.montant = montant
+        self.marquage = self.concassage()
         self.signature = signature
     
+    def concassage(self):
+        sha256 = hashlib.sha256()
+        sha256.update(bytes(self.émetteur,"utf-8") +
+                      bytes(self.destinataire,"utf-8") +
+                      bytes(str(self.montant),"utf-8"))
+        return sha256.hexdigest()
+    
     def est_signée(self):
-        clef = RSA.importKey(émetteur)
-        signature = clef.decrypt(self.signature)
-        if signature.decode() == self.destinataire + self.montant:
+        clef = importer_clef_publique( self.émetteur )
+        signature = clef.decrypt( bytes.fromhex( self.signature ) )
+        if signature.decode() == self.concassage():
             return True
         else : return False
         
@@ -123,22 +134,24 @@ class Utilisateur:
         
     def envoyer(self, destinataire, montant):
         # à relier au réseau
-        clef = RSA.importKey(self.clef_privée)
-        signature = clef.encrypt(destinataire + bytes( str(montant) , "utf-8") , 32)
-        return Transaction(self.clef_publique, destinataire, montant, signature[0])
+        transaction = Transaction( self.clef_publique, destinataire, montant, "0" )
+        clef = importer_clef_privée(self.clef_privée)
+        signature = clef.encrypt( transaction.concassage().encode() , 32 )
+        return Transaction( self.clef_publique, destinataire, montant, signature[0].hex() )
     
 def nouvel_utilisateur():
     clef = RSA.generate(1024)
-    clef_privée = clef.exportKey()
-    clef_publique = clef.publickey().exportKey()
+    clef_publique = clef.exportKey()[31:-29].decode()
+    clef_privée = clef.publickey().exportKey()[26:-24].decode()
     return Utilisateur(clef_privée, clef_publique)
 
-###############################################################################
-"""
-clef c'est la clef renvoyer [32:-30]
-il faut ajouter -----BEGIN RSA PRIVATE KEY-----\n au début et \n-----END RSA PRIVATE KEY----- 
-à la fin pour la remettre au bon format
-"""
+def importer_clef_privée( clef ):
+    clef = "-----BEGIN PUBLIC KEY-----" + clef + "-----END PUBLIC KEY-----"
+    return RSA.importKey( clef.encode() )
+
+def importer_clef_publique( clef ):
+    clef = "-----BEGIN RSA PRIVATE KEY-----" + clef + "-----END RSA PRIVATE KEY-----"
+    return RSA.importKey( clef.encode() )
 
 #Tests
 
@@ -151,5 +164,5 @@ def nChain(*args):
 k=10
 users = [ nouvel_utilisateur() for i in range(k) ]
 chain = nChain(*users)
-trans = [ users[3].envoyer(users[i+1].clef_publique, 1000) for i in range(k//3)]
+trans = [ users[3].envoyer(users[i+1].clef_publique, 10) for i in range(k//3)]
 chain.ajout_de_block(trans)
