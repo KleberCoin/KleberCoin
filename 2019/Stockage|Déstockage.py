@@ -67,8 +67,8 @@ def deserialiseur_perso(obj_dict):
 
 
 #Tests
-with open("MaPlaylist.json", "w", encoding="utf-8") as fichier:
+with open("Blockchain.json", "w", encoding="utf-8") as fichier:
     json.dump(chain, fichier, indent=4, default=serialiseur_perso)
 
-with open("MaPlaylist.json", "r", encoding="utf-8") as fichier:
+with open("Blockchain.json", "r", encoding="utf-8") as fichier:
     chaine = json.load(fichier, object_hook=deserialiseur_perso)
