@@ -38,8 +38,13 @@ class Chaine_de_Blocs:
     def __init__(self, *premier_bloc):
         self.chaine = [ *premier_bloc ]
         
-    def vérification_de_chaine(): 
-        return None
+    def vérification_de_chaine(self):
+        invalides = []
+        for bloc in self.chaine:
+            if not self.vérification_de_bloc(bloc):
+                invalides += bloc.index
+                
+        return invalides
 
     # Traitement d'un nouveau bloc
     def vérification_de_bloc(self, bloc):
@@ -166,3 +171,13 @@ users = [ nouvel_utilisateur() for i in range(k) ]
 chain = nChain(*users)
 trans = [ users[3].envoyer(users[i+1].clef_publique, 10) for i in range(k//3)]
 chain.ajout_de_block(trans)
+
+
+none = "0"
+
+while hash[1] != str(0) or  hash[0] != str(0) or hash[2] != str(0) :
+    sha256 = hashlib.sha256()
+    sha256.update(bytes(none, "utf-8"))
+    hash = sha256.hexdigest()
+    none +="0"
+print(hash)
