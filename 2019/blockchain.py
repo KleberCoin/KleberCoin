@@ -20,6 +20,7 @@ class Bloc:
         self.données = données
         self.marquage_précédent = marquage_précédent
         self.nonce = 0
+        self.cible = 3  # entre 0 et 64 |mettre dans le sérialiseur https://en.bitcoin.it/wiki/Difficulty
         self.marquage = self.concassage()
     
     def concassage(self):
@@ -30,6 +31,17 @@ class Bloc:
                         bytes(str(self.marquage_précédent),"utf-8"))
         return sha256.hexdigest()
 
+    def compte_0(self):
+        i = 0
+        while self.marquage[i] == "0":
+            i +=1
+        return i   
+    
+    def mine(self):
+        while compte_0() < self.cible:
+            self.nonce += 1
+            self.marquage = self.concassage()
+        
 
 def création_premier_bloc():
     return Bloc(datetime.datetime.now(), "Premier bloc", -1, "Premier bloc")
