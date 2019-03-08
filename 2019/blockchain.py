@@ -1,3 +1,10 @@
+TODO
+
+rémunération mineur ?
+mise à jour diff
+frais transactions ?
+
+
 # -*- coding: utf-8 -*-
 """
 Created on Fri Feb  8 10:31:07 2019
