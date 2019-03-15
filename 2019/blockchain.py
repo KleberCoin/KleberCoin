@@ -33,8 +33,6 @@ class Bloc:
         self.cible = 1  # entre 0 et 64 |mettre dans le sérialiseur https://en.bitcoin.it/wiki/Difficulty
         self.marquage = self.concassage()
         
-        self.mine()
-        
     def concassage(self):
         sha256 = hashlib.sha256()
         sha256.update(bytes(str(self.index),"utf-8") +
