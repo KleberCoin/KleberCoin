@@ -1,8 +1,8 @@
 TODO
 
-rémunération mineur ?
+rémunération mineur ? --> non car ce qui va pousser les gens à miner c est leur possession de coins --> déflationiste
 mise à jour diff
-frais transactions ?
+frais transactions ? --> non
 
 
 # -*- coding: utf-8 -*-
@@ -29,15 +29,16 @@ class Bloc:
         self.nonce = 0
         self.cible = 3  # entre 0 et 64 |mettre dans le sérialiseur https://en.bitcoin.it/wiki/Difficulty
         self.marquage = self.concassage()
-    
+        
     def concassage(self):
         sha256 = hashlib.sha256()
         sha256.update(bytes(str(self.index),"utf-8") +
                         bytes(str(self.horodatage),"utf-8") +
                         bytes(str(self.données),"utf-8") +
-                        bytes(str(self.marquage_précédent),"utf-8"))
+                        bytes(str(self.marquage_précédent),"utf-8") +
+                        bytes(str(self.cible),"utf-8"))
         return sha256.hexdigest()
-
+        
     def compte_0(self):
         i = 0
         while self.marquage[i] == "0":
@@ -126,6 +127,13 @@ class Chaine_de_Blocs:
         bloc = Bloc(datetime.datetime.now(), données, self.chaine[-1].index, self.chaine[-1].marquage)
         if self.vérification_de_bloc(bloc):
             self.chaine.append(bloc)
+        if bloc.index % (14*24*60*6) == 0 :
+            décalage = 14 - (self.chaine[-1].date - self.chaine[bloc.index - 14*24*60*6].date).days
+            if décalage < -7:
+                bloc.cible = self.chaine[-1].cible - 1
+            elif décalage > 7:
+                bloc.cible = self.chaine[-1].cible - 1
+
 
 
 class Transaction:
@@ -177,6 +185,8 @@ def importer_clef_publique( clef ):
     clef = "-----BEGIN RSA PRIVATE KEY-----" + clef + "-----END RSA PRIVATE KEY-----"
     return RSA.importKey( clef.encode() )
 
+    
+    
 #Tests
 
 def nChain(*args):
