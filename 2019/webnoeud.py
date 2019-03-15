@@ -37,9 +37,10 @@ PREMIER_NOEUD = True
 
 global liste_des_pairs
 # Stockage des noeuds pair. Si pas PREMIER_NOEUD
-liste_des_pairs = ["192.168.0.2"]
+liste_des_pairs = [] #["192.168.0.2"]
 
-
+global chaine_de_blocs
+# TODO: intégrer avec le prog d'alex
 
 # Init. Flask
 noeud = Flask(__name__)
@@ -52,9 +53,81 @@ noeud = Flask(__name__)
 # Stockage des transactions du noeud dans une liste avant de l'ajouter dans un
 # bloc
 transaction_noeud = []
+
+################################################################################
+############################## A REMPLACER PAR UN MODULE #################################
+################################################################################
+
+
+
+
+def serialiseur(obj): 
+    #Si c'est une transaction
+    if isinstance(obj, Transaction):
+        return {
+            "__class__": "Transaction",
+            "emetteur": obj.émetteur,
+            "destinataire": obj.destinataire,
+            "montant": obj.montant,
+            "signature": obj.signature
+        }
+    
+    # Si c'est un bloc
+    if isinstance(obj, Bloc):
+        return {
+            "__class__": "Bloc",
+            "index": obj.index,
+            "horodatage": obj.horodatage.isoformat(),
+            "donnees": obj.données,
+            "marquage_precedent": obj.marquage_précédent,
+            "nonce": obj.nonce,
+            "marquage": obj.marquage
+        }
+        
+    #Si c'est une chaine de blocs
+    if isinstance(obj, Chaine_de_Blocs):
+        return {
+            "__class__": "Chaine de Blocs",
+            "chaine": obj.chaine
+        }
+    
+    #Sinon le type de l 'objet est inconnu, on lance une exception
+    raise TypeError(repr(obj) + " n'est pas sérialisable !")
+    
+    
+def deserialiseur(obj_dict):
+        if "__class__" in obj_dict: 
+            # Si c'est une transaction
+            if obj_dict["__class__"] == "Transaction":
+                return Transaction(obj_dict["emetteur"],
+                    obj_dict["destinataire"],
+                    obj_dict["montant"],
+                    obj_dict["signature"])
+            # Si c'est un bloc
+            if obj_dict["__class__"] == "Bloc":
+                bloc = Bloc(datetime.datetime.strptime(obj_dict["horodatage"],
+                        "%Y-%m-%dT%H:%M:%S.%f"),
+                    obj_dict["donnees"],
+                    obj_dict["index"] - 1,
+                    obj_dict["marquage_precedent"])
+            bloc.nonce = obj_dict["nonce"]
+            bloc.marquage = bloc.concassage()
+            return bloc
+            # Si c'est une chaine de blocs
+            if obj_dict["__class__"] == "Bloc":
+                return Chain( * obj_dict)
+
+
+
+
+
+
+
 ################################################################################
 ############################## FONCTIONS NOEUD #################################
 ################################################################################
+
+
 
 def prendre_statut(ip_pair):
     """ Prendre le statut d'un pair, savoir s'il est actif """
@@ -77,7 +150,12 @@ def prendre_pairs_connus(ip_pair):
 
 def prendre_chaine(ip_pair):
     """ Prendre la chaine d'un pair """
-    return True
+    req = requests.get('http://{}:13333/chaine'.format(ip_pair)).content
+    # Conversion en dictionnaire python
+    chaine_de_blocs = json.load(req, object_hook=deserialiseur)
+
+    return chaine_de_blocs 
+
 
 def se_montrer_pair(ip_pair):
     """ Montrer qu'on est un pair à un pair """
@@ -90,6 +168,24 @@ def se_montrer_pair(ip_pair):
         print("Pas Accepté comme pair chez {}  :(".format(ip_pair))
     return False
 
+def trouver_toutes_les_chaine():
+    # Prendre toutes les chaines des noeuds connus
+    global liste_des_pairs
+    chaines = []
+    for ip_pair in liste_des_pairs:
+        # prendre les chaines
+        chaine = prendre_chaine(ip_pair);
+        # Ajout à la liste
+        chaines.append(chaine)
+    return chaines
+
+def plus_longue_chaine():
+    global chaine_de_blocs
+    chaine_longue = chaine_de_blocs
+    for chaine in trouver_toutes_les_chaine():
+        if len(chaine_longue) < len(chaine):
+            chaine_longue = chaine
+    return chaine_longue
 
 
 ################################################################################
@@ -133,10 +229,10 @@ def ajout_pair():
 def donner_la_chaine():
     """ Envoie la version du noeud de la chaine """
     # TODO: return la chaine de bloc
-    chaine_de_bloc = "oui"
+    global chaine_de_blocs
     if(VERBOSE):
         print("Don de la chaine de bloc à {}".format(request.remote_addr))
-    return jsonify(chaine_de_bloc)
+    return jsonify(json.dump(chaine_de_blocs, indent=4,default=serialiseur)),200 # json.dump a tester
 
 
 @noeud.route("/transaction", methods=["POST"])
@@ -189,6 +285,8 @@ def main():
         # Présentation chez les autres pairs
         for pair in liste_des_pairs:
             se_montrer_pair(pair)
+        # Prendre toutes les chaines et choisir la plus grande
+        chaine_de_blocs = plus_longue_chaine()
     elif not PREMIER_NOEUD and not liste_des_pairs:
         print("Erreur: Noeud pas le premier mais liste des pairs vide")
 
