@@ -24,6 +24,7 @@ def serialiseur_perso(obj):
                 "horodatage": obj.horodatage.isoformat(),
                 "donnees": obj.données,
                 "marquage_precedent": obj.marquage_précédent,
+                "cible": obj.cible
                 "nonce": obj.nonce,
                 "marquage": obj.marquage}
     
@@ -55,6 +56,7 @@ def deserialiseur_perso(obj_dict):
                          obj_dict["index"] - 1,
                          obj_dict["marquage_precedent"])
             bloc.nonce = obj_dict["nonce"]
+            bloc.cible = obj_dict["cible"]
             bloc.marquage = bloc.concassage()
             return bloc
         
