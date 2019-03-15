@@ -1,11 +1,14 @@
+
+# -*- coding: utf-8 -*-
+
+"""
 TODO
 
 rémunération mineur ? --> non car ce qui va pousser les gens à miner c est leur possession de coins --> déflationiste
 mise à jour diff
 frais transactions ? --> non
+"""
 
-
-# -*- coding: utf-8 -*-
 """
 Created on Fri Feb  8 10:31:07 2019
 """
@@ -27,8 +30,10 @@ class Bloc:
         self.données = données
         self.marquage_précédent = marquage_précédent
         self.nonce = 0
-        self.cible = 3  # entre 0 et 64 |mettre dans le sérialiseur https://en.bitcoin.it/wiki/Difficulty
+        self.cible = 1  # entre 0 et 64 |mettre dans le sérialiseur https://en.bitcoin.it/wiki/Difficulty
         self.marquage = self.concassage()
+        
+        self.mine()
         
     def concassage(self):
         sha256 = hashlib.sha256()
@@ -127,13 +132,13 @@ class Chaine_de_Blocs:
         bloc = Bloc(datetime.datetime.now(), données, self.chaine[-1].index, self.chaine[-1].marquage)
         if self.vérification_de_bloc(bloc):
             self.chaine.append(bloc)
-        if bloc.index % (14*24*60*6) == 0 :
+        """if bloc.index % (14*24*60*6) == 0 :
             décalage = 14 - (self.chaine[-1].date - self.chaine[bloc.index - 14*24*60*6].date).days
             if décalage < -7:
                 bloc.cible = self.chaine[-1].cible - 1
             elif décalage > 7:
                 bloc.cible = self.chaine[-1].cible - 1
-
+        """
 
 
 class Transaction:
