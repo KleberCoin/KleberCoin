@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Feb 11 08:58:16 2019
-
-@author: Wakedel
 """
 
 import json
@@ -18,18 +16,17 @@ def serialiseur_perso(obj):
                 "signature": obj.signature}
 
     # Si c'est un bloc.
-    if isinstance(obj, Bloc):
+    if isinstance(obj, Block):
         return {"__class__": "Bloc",
                 "index": obj.index,
                 "horodatage": obj.horodatage.isoformat(),
                 "donnees": obj.données,
                 "marquage_precedent": obj.marquage_précédent,
-                "cible": obj.cible
                 "nonce": obj.nonce,
                 "marquage": obj.marquage}
     
     # Si c'est une chaine de blocs.
-    if isinstance(obj, Chaine_de_Blocs):
+    if isinstance(obj, Blockchain):
         return {"__class__": "Chaine de Blocs",
                 "chaine": obj.chaine}
     
@@ -50,27 +47,18 @@ def deserialiseur_perso(obj_dict):
             
         # Si c'est un bloc
         if obj_dict["__class__"] == "Bloc":
-            bloc = Bloc( datetime.datetime.strptime( obj_dict["horodatage"],
-                                                     "%Y-%m-%dT%H:%M:%S.%f"),
-                         obj_dict["donnees"],
+            bloc = Block( obj_dict["donnees"],
                          obj_dict["index"] - 1,
-                         obj_dict["marquage_precedent"])
+                         obj_dict["marquage_precedent"],
+                         date = datetime.datetime.strptime( obj_dict["horodatage"],
+                                                     "%Y-%m-%dT%H:%M:%S.%f"))
             bloc.nonce = obj_dict["nonce"]
-            bloc.cible = obj_dict["cible"]
-            bloc.marquage = bloc.concassage()
+            bloc.marquage = bloc.hash()
             return bloc
         
         # Si c'est une chaine de blocs
-        if obj_dict["__class__"] == "Bloc":
-            return Chain( *obj_dict )
+        if obj_dict["__class__"] == "Chaine de Blocs":
+            #del( obj_dict["__class__"] )
+            return Blockchain( *obj_dict["chaine"] )
         
     #return objet
-
-
-
-#Tests
-with open("Blockchain.json", "w", encoding="utf-8") as fichier:
-    json.dump(chain, fichier, indent=4, default=serialiseur_perso)
-
-with open("Blockchain.json", "r", encoding="utf-8") as fichier:
-    chaine = json.load(fichier, object_hook=deserialiseur_perso)
