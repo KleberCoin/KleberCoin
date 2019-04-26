@@ -126,6 +126,13 @@ class Blockchain:
         for bloc in blocs:
             if self.vérification_de_bloc(bloc):
                 self.chaine.append(bloc)
+            """if bloc.index % (14*24*60*6) == 0 :
+            décalage = 14 - (self.chaine[-1].date - self.chaine[bloc.index - 14*24*60*6].date).days
+            if décalage < -7:
+                bloc.cible = self.chaine[-1].cible - 1
+            elif décalage > 7:
+                bloc.cible = self.chaine[-1].cible - 1
+        """
 
 class Transaction:
     def __init__(self, émetteur, destinataire, montant, signature):
