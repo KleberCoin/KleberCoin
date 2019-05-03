@@ -34,7 +34,7 @@ class Block:
                       self.marquage_précédent,
                       self.nonce)
     
-    def new(précédent, données):
+    def new(précédent, données): # prendre la blockchain en paramètre pour avoir la cible du nouveau bloc
         return Bloc(données, précédent.index, précédent.marquage)
         
     def compte_0(self):
@@ -55,6 +55,7 @@ class Block:
 class Blockchain:
     def __init__(self, *premiers_blocs):
         self.chaine = [ *premiers_blocs ]
+        self.cible = 0
         
     def __len__(self):
         return len( self.chaine )
@@ -126,13 +127,12 @@ class Blockchain:
         for bloc in blocs:
             if self.vérification_de_bloc(bloc):
                 self.chaine.append(bloc)
-            """if bloc.index % (14*24*60*6) == 0 :
-            décalage = 14 - (self.chaine[-1].date - self.chaine[bloc.index - 14*24*60*6].date).days
-            if décalage < -7:
-                bloc.cible = self.chaine[-1].cible - 1
-            elif décalage > 7:
-                bloc.cible = self.chaine[-1].cible - 1
-        """
+            if bloc.index % (14*24*60*6) == 0 :
+                décalage = 14 - (self.chaine[-1].date - self.chaine[bloc.index - 14*24*60*6].date).days
+                if décalage < -7:
+                    self.cible = self.chaine[-1].cible - 1
+                elif décalage > 7:
+                    self.cible = self.chaine[-1].cible - 1
 
 class Transaction:
     def __init__(self, émetteur, destinataire, montant, signature):
