@@ -118,7 +118,7 @@ class Blockchain:
                         valides += [transaction.destinataire]
                     
         if len(list(à_vérifier)) !=0 and n > 1:
-            vérification_des_transactions(à_vérifier, valides, invalides, (n-1))
+            self.vérification_des_transactions(à_vérifier, valides, invalides, (n-1))
         else : invalides += list(à_vérifier)
         
     
