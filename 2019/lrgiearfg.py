@@ -48,7 +48,7 @@ class Block:
     
     def mine(self):
         
-        while compte_0() < self.cible:
+        while self.compte_0() < self.cible:
             self.nonce += 1
             self.marquage = self.hash()
     
