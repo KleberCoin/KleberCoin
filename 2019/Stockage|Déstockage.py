@@ -28,7 +28,8 @@ def serialiseur_perso(obj):
     # Si c'est une chaine de blocs.
     if isinstance(obj, Blockchain):
         return {"__class__": "Chaine de Blocs",
-                "chaine": obj.chaine}
+                "chaine": obj.chaine,
+                "cible": obj.cible}
     
     # Sinon le type de l'objet est inconnu, on lance une exception.
     raise TypeError(repr(obj) + " n'est pas sérialisable !")
@@ -59,6 +60,8 @@ def deserialiseur_perso(obj_dict):
         # Si c'est une chaine de blocs
         if obj_dict["__class__"] == "Chaine de Blocs":
             #del( obj_dict["__class__"] )
-            return Blockchain( *obj_dict["chaine"] )
+            chain = Blockchain( *obj_dict["chaine"] )
+            chain.cible = obj_dict["cible"]
+            return chain
         
     #return objet
