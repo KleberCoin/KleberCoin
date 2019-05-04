@@ -179,4 +179,4 @@ def importer_clef_privée( clef ):
 
 def importer_clef_publique( clef ):
     clef = "-----BEGIN RSA PRIVATE KEY-----" + clef + "-----END RSA PRIVATE KEY-----"
-return RSA.importKey( clef.encode() )
+    return RSA.importKey( clef.encode() )
